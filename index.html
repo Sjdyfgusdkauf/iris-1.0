@@ -1,0 +1,538 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I.R.I.S. - Virtual Assistant</title>
+
+    <!-- CSS Linkage -->
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100;200;300;400;500;600;700&display=swap");
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Roboto Mono", monospace;
+        }
+
+        /* Starting Page Styles */
+        body {
+            background: #000;
+            overflow: hidden;
+        }
+
+        .start-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInStart 2s ease-out;
+            z-index: 9999;
+        }
+
+        .start-page img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes fadeInStart {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Main Page Styles */
+        .main {
+            min-height: 100vh;
+            position: relative;
+            width: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0; /* Initially hidden */
+            animation: fadeIn 2s ease-out forwards; /* Fade in when loaded */
+        }
+
+        .main .image-container {
+            padding: 10px;
+        }
+
+        .main .image-container .image {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; /* Adding cursor pointer for interaction */
+        }
+
+        .main .image-container .image img {
+            width: 80%; /* Increased size */
+            max-width: 500px; /* Set max-width for responsiveness */
+        }
+
+        .main .image-container h1 {
+            color: #00bcd4;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 40px;
+        }
+
+        .main .image-container p {
+            color: #324042;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .main .input {
+            display: none; /* Hiding the input container */
+        }
+
+         #fingerprintButton {
+            background-color: #00bcd4;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        #fingerprintButton:hover {
+            background-color: #0097a7;
+        }
+
+        .main .input {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+#questionInput {
+    width: 80%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #00bcd4;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #000;
+    color: #fff;
+}
+
+#askButton {
+    background-color: #00bcd4;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+#askButton:hover {
+    background-color: #0097a7;
+}
+   </style>
+
+    <!-- Font Awesome Cdn Linkage -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    </head>
+    <body>
+    
+   <!-- Starting Page -->
+    <div class="start-page">
+        <img src="https://i.pinimg.com/originals/3e/7c/4e/3e7c4efc6d6576a97738ce73aae54b9e.gif" alt="starting page animation">
+    </div>
+    
+
+    <!-- Main Page -->
+    <section class="main">
+        <div class="image-container">
+            <!-- Added onclick event to the image to toggle listening -->
+            <div class="image" onclick="toggleListening()">
+                <img src="https://i.pinimg.com/originals/0f/b2/88/0fb288a519fdb745d0b773d87a6aaf2e.gif" alt="image">
+            </div>
+    
+        <div>
+            <h1>I.R.I.S.</h1>
+            <p>I'm a Virtual Assistant. How can I help you?</p>
+        </div>
+        <div class="input">
+            <!-- Microphone button is removed and functionality is integrated into the GIF -->
+            <!-- Button is no longer necessary -->
+            <!-- <button class="talk"><i class="fas fa-microphone-alt"></i></button> -->
+            <!-- <h1 class="content"> Click here to speak</h1> -->
+        </div>
+        <div class="input">
+    <input type="text" id="questionInput" placeholder="Type your question here">
+    <button id="askButton" onclick="askQuestion()">Ask</button>
+</div>
+    </section>
+
+    <!-- Add this script tag before the closing </body> tag -->
+    <script>
+        // New JavaScript code for handling the starting page
+        window.addEventListener('load', () => {
+            // Display the starting page with a delay
+            setTimeout(() => {
+                document.querySelector('.start-page').style.display = 'none';
+            }, 5000); // 5000 milliseconds (5 seconds) delay
+        });
+
+        // Event listener for the main page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Show the main page
+            document.querySelector('.main').style.opacity = '1';
+
+            // Additional initialization code goes here
+            speak("Activating Iris");
+            speak("Going online");
+            wishMe();
+            startListening();
+        });
+
+        // JavaScript function to toggle listening state
+        function toggleListening() {
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        }
+
+        const wakeWord = 'IRIS';
+        let isListening = false;
+
+        function speak(sentence) {
+            const text_speak = new SpeechSynthesisUtterance(sentence);
+
+            text_speak.rate = 1;
+            text_speak.pitch = 1;
+
+            window.speechSynthesis.speak(text_speak);
+        }
+
+        function wishMe() {
+            var day = new Date();
+            var hr = day.getHours();
+
+            if (hr >= 0 && hr < 12) {
+                speak("Good Morning Boss");
+            } else if (hr == 12) {
+                speak("Good noon Boss");
+            } else if (hr > 12 && hr <= 17) {
+                speak("Good Afternoon Boss");
+            } else {
+                speak("Good Evening Boss");
+            }
+        }
+
+        function startListening() {
+            isListening = true;
+            // Update the content to reflect listening state
+            document.querySelector('.input').textContent = 'Listening for the wake word...';
+            // Start Speech Recognition
+            recognition.start();
+        }
+
+        function stopListening() {
+            isListening = false;
+            // Update the content to reflect listening state
+            document.querySelector('.input').textContent = 'Click here to speak';
+            // Stop Speech Recognition
+            recognition.stop();
+        }
+
+        function getWeatherByLocation(latitude, longitude) {
+            const apiKey = 'a935895bc81a8c1a86181f45e213d039';
+            const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Weather API request failed with status ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const weatherDescription = data.weather[0].description;
+                    const temperature = data.main.temp;
+                    const location = data.name;
+
+                    const weatherText = `Currently in ${location}, it's ${temperature}°C with ${weatherDescription}.`;
+                    speak(weatherText);
+                })
+                .catch(error => {
+                    console.error('Error fetching weather:', error);
+                    speak("Sorry, I couldn't fetch the current weather at the moment.");
+                });
+        }
+
+        function handleWeatherCommand(message) {
+            if (message.includes('weather')) {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        position => {
+                            const latitude = position.coords.latitude;
+                            const longitude = position.coords.longitude;
+                            getWeatherByLocation(latitude, longitude);
+                        },
+                        error => {
+                            console.error('Error getting location:', error);
+                            speak("Sorry, I couldn't determine your location for weather information.");
+                        }
+                    );
+                } else {
+                    console.error('Geolocation is not supported by your browser.');
+                    speak("Sorry, your browser doesn't support geolocation.");
+                }
+            }
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            // Update the content to indicate speech recognition error
+            document.querySelector('.input').textContent = 'Error in speech recognition. Please try again.';
+        }
+
+        recognition.onend = () => {
+            if (isListening) {
+                console.log('Speech recognition ended unexpectedly. Restarting...');
+                startListening();
+            }
+        }
+
+        recognition.onresult = (event) => {
+            const current = event.resultIndex;
+            const transcript = event.results[current][0].transcript.toLowerCase();
+            console.log('Command received:', transcript);
+
+            if (isListening) {
+                if (transcript.includes(wakeWord.toLowerCase())) {
+                    // Update the content to show the recognized command
+                    document.querySelector('.input').textContent = transcript;
+                    stopListening();
+                    speakThis(transcript);
+                }
+            }
+        }
+
+        function speakThis(message) {
+            const speech = new SpeechSynthesisUtterance();
+            speech.text = "I did not understand what you said. Please try again";
+
+            if (message.includes('hey') || message.includes('hello')) {
+                const finalText = "Hello Boss";
+                speech.text = finalText;
+            } else if (message.includes('how are you')) {
+                const finalText = "I am fine boss. Tell me how can I help you";
+                speech.text = finalText;
+            } else if (message.includes('name')) {
+                const finalText = "My name is Iris";
+                speech.text = finalText;
+            } else if (message.includes('open')) {
+                const finalText = "Opening " + message.substring(message.indexOf('open') + 5);
+                speech.text = finalText;
+                openRequestedSite(message);
+            } else if (message.includes('introduce')) {
+                const finalText = "Allow me to introduce myself. I am Iris, the complete virtual artificial intelligence. Twenty-four hours a day, seven days a week";
+                speech.text = finalText;
+            } else if (message.includes('creator')) {
+                const finalText = "I was developed by my master Sidharth Dasgupta";
+                speech.text = finalText;   
+            } else if (message.includes('wikipedia')) {
+                window.open(`https://en.wikipedia.org/wiki/${message.replace("wikipedia", "")}`, "_blank");
+                const finalText = "This is what I found on Wikipedia regarding " + message;
+                speech.text = finalText;
+            } else if (message.includes('time')) {
+                const time = new Date().toLocaleString(undefined, { hour: "numeric", minute: "numeric" })
+                const finalText = "The time is " + time;
+                speech.text = finalText;
+            } else if (message.includes('date')) {
+                const date = new Date().toLocaleString(undefined, { month: "short", day: "numeric" })
+                const finalText = "The date is " + date;
+                speech.text = finalText;
+            } else if (message.includes('calculator')) {
+                window.open('Calculator:///')
+                const finalText = "Opening Calculator";
+                speech.text = finalText;
+            } else if (message.includes('open gmail')) {
+                sendEmailRequest("mymelodiousland2012@gmail.com", "Email Subject", "Hello, this is the email body.");
+            } else {
+                handleWeatherCommand(message);
+                window.open(`https://www.google.com/search?q=${message.replace(" ", "+")}`, "_blank");
+                const finalText = "I found some information for " + message + " on Google";
+                speech.text = finalText;
+            }
+
+            speech.volume = 1;
+            speech.pitch = 1;
+            speech.rate = 1;
+
+            window.speechSynthesis.speak(speech);
+        }
+
+        function openRequestedSite(message) {
+            const siteName = message.substring(message.indexOf('open') + 5);
+            window.open(`https://${siteName.toLowerCase()}.com`, "_blank");
+        }
+
+        function sendEmailRequest(to, subject, body) {
+            fetch('/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ to, subject, body }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    document.querySelector('.input').textContent = 'Email sent!';
+                })
+                .catch(error => {
+                    console.error('Error sending email:', error);
+                    document.querySelector('.input').textContent = 'Error sending email';
+                });
+        }
+// Function to handle user sign-up
+function signUp() {
+    const passkey = prompt("Create your passkey:");
+    if (passkey) {
+        // Store the passkey securely (e.g., in a database)
+        localStorage.setItem('irisPasskey', passkey);
+        alert("Passkey created successfully!");
+    }
+}
+
+// Function to handle user login
+function login() {
+    const storedPasskey = localStorage.getItem('irisPasskey');
+    if (storedPasskey) {
+        const enteredPasskey = prompt("Enter your passkey:");
+        if (enteredPasskey === storedPasskey) {
+            alert("Login successful!");
+            // Proceed with additional actions
+        } else {
+            alert("Incorrect passkey. Please try again.");
+        }
+    } else {
+        alert("No passkey found. Please sign up first.");
+    }
+}
+
+// Function to handle fingerprint authentication
+async function authenticateWithFingerprint() {
+    // Check if the user has signed up
+    const storedPasskey = localStorage.getItem('irisPasskey');
+    if (!storedPasskey) {
+        alert("Please sign up before using fingerprint authentication.");
+        return;
+    }
+
+    try {
+        // Prompt the user for their passkey
+        const passkey = prompt("Please enter your device passkey:");
+
+        // Check if passkey is provided
+        if (!passkey) {
+            alert("Passkey is required.");
+            return;
+        }
+
+        // Verify passkey against stored passkey
+        if (passkey === storedPasskey) {
+            // Proceed with fingerprint authentication
+            alert("Fingerprint authentication successful!");
+            // Additional actions after successful authentication can be added here
+        } else {
+            alert("Incorrect passkey.");
+        }
+    } catch (error) {
+        console.error("Error during fingerprint authentication:", error);
+        alert("Fingerprint authentication error.");
+    }
+}
+
+function askQuestion() {
+    const question = document.getElementById('questionInput').value;
+    if (question.trim()) {
+        speakThis(question);
+        document.getElementById('questionInput').value = ''; // Clear the input field after asking the question
+    } else {
+        speak("Please type a question.");
+    }
+}
+
+function askQuestion() {
+    const question = document.getElementById('questionInput').value;
+    if (question.trim()) {
+        speakThis(question);
+        document.getElementById('questionInput').value = ''; // Clear the input field after asking the question
+    } else {
+        speak("Please type a question.");
+    }
+}
+
+function speakThis(message) {
+    const speech = new SpeechSynthesisUtterance();
+    speech.text = "I did not understand what you said. Please try again";
+
+    if (message.toLowerCase().includes('hey') || message.toLowerCase().includes('hello')) {
+        speech.text = "Hello Boss";
+    } else if (message.toLowerCase().includes('how are you')) {
+        speech.text = "I am fine boss. Tell me how can I help you";
+    } else if (message.toLowerCase().includes('name')) {
+        speech.text = "My name is Iris";
+    } else if (message.toLowerCase().includes('open')) {
+        const siteName = message.substring(message.indexOf('open') + 5).trim();
+        speech.text = "Opening " + siteName;
+        window.open(`https://${siteName.toLowerCase()}.com`, "_blank");
+    } else if (message.toLowerCase().includes('introduce')) {
+        speech.text = "Allow me to introduce myself. I am Iris, the complete virtual artificial intelligence. Twenty-four hours a day, seven days a week";
+    } else if (message.toLowerCase().includes('creator')) {
+        speech.text = "I was developed by my master Sidharth Dasgupta";
+    } else if (message.toLowerCase().includes('wikipedia')) {
+        const topic = message.replace("wikipedia", "").trim();
+        window.open(`https://en.wikipedia.org/wiki/${topic}`, "_blank");
+        speech.text = "This is what I found on Wikipedia regarding " + topic;
+    } else if (message.toLowerCase().includes('time')) {
+        const time = new Date().toLocaleString(undefined, { hour: "numeric", minute: "numeric" });
+        speech.text = "The time is " + time;
+    } else if (message.toLowerCase().includes('date')) {
+        const date = new Date().toLocaleString(undefined, { month: "short", day: "numeric" });
+        speech.text = "The date is " + date;
+    } else if (message.toLowerCase().includes('calculator')) {
+        window.open('Calculator:///');
+        speech.text = "Opening Calculator";
+    } else {
+        window.open(`https://www.google.com/search?q=${message.replace(" ", "+")}`, "_blank");
+        speech.text = "I found some information for " + message + " on Google";
+    }
+
+    speech.volume = 1;
+    speech.pitch = 1;
+    speech.rate = 1;
+
+    window.speechSynthesis.speak(speech);
+}
+
+</script>
+
+
+</body>
+</html>
